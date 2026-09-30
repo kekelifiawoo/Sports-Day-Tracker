@@ -1,36 +1,48 @@
 # Sports Day Leaderboard
 
-House points tracker for Roman Ridge School sports day (Cobras, Hawks, Sharks, Bears).
-Everything is in `index.html`: no build step, no dependencies.
+A live points tracker I built for School's inter-house sports day. Teachers enter race results and everyone sees the house standings update in real time on their phone or laptop.
 
-## 1. Put it on GitHub Pages
+**Live site:** https://sports-day-tracker.vercel.app
 
-1. Create a new repository on GitHub and upload `index.html`, `README.md` and `supabase-setup.sql`.
-2. Open **Settings > Pages**, choose **Deploy from a branch**, pick `main` and `/ (root)`, then save.
-3. After a minute the site is live at `https://<your-username>.github.io/<repository-name>/`.
+## The problem
 
-## 2. Make scores visible on every device (free Supabase database)
+Sports day results were tallied by hand across several races, age groups and divisions. That is slow, easy to get wrong, and leaves students and parents without a current scoreboard. I wanted one place where results could be entered once and seen by everyone straight away.
 
-Without this step scores are saved only in the browser that entered them.
+## What it does
 
-1. Create a free account and a new project at https://supabase.com.
-2. Open **SQL Editor > New query**, paste the contents of `supabase-setup.sql`, and click **Run**.
-3. Open **Project Settings > API** (or **API Keys**). Copy the **Project URL** and the public key (labelled `anon` or `publishable`). Never copy the `service_role` or secret key.
-4. In `index.html`, near the top of the script, fill in:
-   ```js
-   var SUPABASE_URL = "https://abcdxyz.supabase.co";
-   var SUPABASE_KEY = "your-public-key";
-   ```
-5. Commit the change to GitHub. Once Pages redeploys, every phone and laptop shows the same scores, refreshed every few seconds.
+- Tracks four houses (Cobras, Hawks, Sharks and Bears), each shown in its house colour
+- Covers 100m, 200m, 400m and 800m races plus a relay for every division: 4x100m for seniors and a shuttle relay for middle and junior
+- Keeps separate Male and Female results for Senior, Middle and Junior age groups
+- Awards 15 points for 1st place, 10 for 2nd and 5 for 3rd, and calculates house totals automatically
+- Ranks the houses live and shows the best boys' house and best girls' house
+- Has a password-protected admin screen where scores are entered and corrected
+- Refreshes on every device within a few seconds, with no sign-in needed to view
+- Works on phones, tablets and laptops
 
-## Using it
+## How it works
 
-- **Scores** tab: house standings, results by race, and the best boys' and girls' house.
-- **Admin** tab: enter the password, then pick the 1st, 2nd and 3rd house for each race (15, 10 and 5 points).
-- Change the password by editing `ADMIN_PASSWORD` near the top of the script.
+The whole front end is a single `index.html` file written in HTML, CSS and vanilla JavaScript, with no frameworks or build step. Results are stored in a PostgreSQL database hosted on Supabase and accessed through its REST API. Each race result is one row, so entering or changing a result updates the row. Every open page checks for changes every few seconds and recalculates the standings from the stored results.
 
-## Good to know
+Row Level Security is enabled on the database table, so the public key included in the page can only reach that one table. The site is deployed from GitHub to Vercel, and pushing a change publishes it automatically.
 
-- The password and the public database key are visible in the page source. The password only hides the admin screen; someone technical could still change scores directly in the database. That is usually fine for a school sports day, but it is not tamper-proof.
-- To reset everything, use **Clear all scores** in the Admin tab.
-- Supabase free projects pause after a week of no activity. Open the page once before the event, and restore the project from the Supabase dashboard if it was paused.
+## Tech
+
+HTML5, CSS3, JavaScript (ES6), Supabase (PostgreSQL, REST API, Row Level Security), GitHub, Vercel
+
+## Limitations and next steps
+
+- The admin password is checked in the browser, so it only keeps casual users out of the admin screen. A stronger version would use proper sign-in (for example Supabase Auth) and restrict database writes to signed-in teachers.
+- Results refresh by polling every few seconds. Supabase Realtime would make updates instant.
+- Possible additions: individual athlete records, a printable results sheet, and support for more events.
+
+## Run it yourself
+
+1. Create a free Supabase project and run `supabase-setup.sql` in the SQL Editor.
+2. Put your project URL and publishable key into `SUPABASE_URL` and `SUPABASE_KEY` in `index.html`.
+3. Open `index.html` in a browser, or host it on GitHub Pages or Vercel.
+
+## About
+
+Built by [your name], [your year/grade], Roman Ridge School, Accra, Ghana.
+[One sentence on how it was used, for example: "Used at the [year] sports day by [number] students across four houses."]
+[If an AI tool helped: "Built with help from Claude (Anthropic) for code generation; I designed the requirements, tested the app and deployed it."]
