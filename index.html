@@ -188,8 +188,8 @@ input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
   /* Shared scores (visible to everyone): paste your Supabase details here. See README.md.
      Leave both empty to keep scores on this device only. */
-  var SUPABASE_URL = "";   // e.g. https://abcdxyz.supabase.co
-  var SUPABASE_KEY = "";   // the public "anon" / "publishable" key
+  var SUPABASE_URL = "https://dmlkcymjsahmmnbvwnho.supabase.co";   // e.g. https://abcdxyz.supabase.co
+  var SUPABASE_KEY = "sb_publishable_tR3wky_rIlX6PJLXDHeK_g_aQwa7eGf";   // the public "anon" / "publishable" key
   var state = { age: "Senior", gender: "Male", view: "scores", results: {}, ready: false, unlocked: false };
   try { state.unlocked = sessionStorage.getItem("sd-admin") === "1"; } catch (e) {}
   var db = null;
