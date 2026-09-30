@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sports Day Leaderboard – Roman Ridge School</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+  --ink: #0a1a3f;
+  --muted: #6b7a99;
+  --line: #e6ebf5;
+  --soft: #f4f7fd;
+  --blue: #1b4fd8;
+  --cobras: #e0252c;
+  --hawks: #2375f0;
+  --sharks: #12a150;
+  --bears: #f7c600;
+  --font: "Manrope", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #ffffff; color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.35; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 14px 14px 40px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+.brand { font-weight: 800; font-size: 18px; letter-spacing: -.01em; }
+.brand small { display: block; font-weight: 600; font-size: 11.5px; color: var(--muted); letter-spacing: 0; margin-top: 1px; }
+.tabs { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 3px; }
+.tabs button { font: 700 12.5px var(--font); border: 0; background: transparent; color: var(--muted); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--blue); color: #fff; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* standings */
+.standings { display: grid; gap: 12px; margin-bottom: 18px; }
+.gsplit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; align-items: start; }
+.gcard { border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
+.gcard summary { list-style: none; cursor: pointer; padding: 10px 14px; position: relative; border-radius: 14px; }
+.gcard summary::-webkit-details-marker { display: none; }
+.gcard summary::after { content: ""; position: absolute; right: 14px; top: 18px; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); }
+.gcard[open] summary::after { transform: rotate(-135deg); top: 21px; }
+.gcard summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.gcard .gl { font-size: 12px; font-weight: 700; color: var(--muted); padding-right: 18px; }
+.gcard .gw { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 21px; letter-spacing: -.02em; line-height: 1.1; margin-top: 5px; min-height: 24px; flex-wrap: wrap; }
+.gcard .gw i { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.gcard .gw.none { color: var(--muted); font-size: 13.5px; font-weight: 600; }
+.gcard ul { list-style: none; display: grid; gap: 7px; margin: 0 14px; padding: 10px 0 0; border-top: 1px solid var(--line); }
+.gcard li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.gcard li i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.gcard li span:nth-child(2) { flex: 1; }
+.gcard li b { font-weight: 800; }
+.gcard li.lead { color: var(--ink); font-weight: 800; }
+.gcard .pad { height: 12px; }
+.house { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; }
+.rk { font-weight: 700; font-size: 13px; color: var(--muted); text-align: center; }
+.house .top { display: flex; justify-content: space-between; align-items: baseline; }
+.house .nm { font-weight: 700; font-size: 15px; }
+.house .pts { font-weight: 800; font-size: 26px; letter-spacing: -.02em; line-height: 1; }
+.track { height: 8px; background: var(--soft); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+.track i { display: block; height: 100%; border-radius: 99px; min-width: 0; }
+@media (prefers-reduced-motion: no-preference) { .track i { transition: width .35s ease; } }
+
+/* filters */
+.head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+h2 { margin: 0; font-size: 15px; font-weight: 800; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.pills { display: inline-flex; gap: 2px; background: var(--soft); border-radius: 999px; padding: 3px; }
+.pills button { font: 700 12px var(--font); border: 0; background: transparent; color: var(--muted); padding: 5px 11px; border-radius: 999px; cursor: pointer; }
+.pills button[aria-pressed="true"] { background: #fff; color: var(--blue); box-shadow: 0 0 0 1px var(--line); }
+
+/* race rows */
+.list { border-top: 1px solid var(--line); }
+.race { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.race .rn { font-weight: 700; font-size: 14px; }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.chip { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; font-weight: 700; font-size: 12.5px; background: var(--soft); color: var(--muted); min-width: 0; white-space: nowrap; overflow: hidden; }
+.chip b { font-weight: 800; font-size: 11px; opacity: .75; }
+.chip.cobras { background: var(--cobras); color: #fff; }
+.chip.hawks { background: var(--hawks); color: #fff; }
+.chip.sharks { background: var(--sharks); color: #fff; }
+.chip.bears { background: var(--bears); color: #2b2300; }
+
+/* admin selects */
+.place label { display: block; font-size: 10.5px; font-weight: 700; color: var(--muted); margin: 0 0 2px 2px; }
+.place select { width: 100%; font: 700 12.5px var(--font); padding: 7px 4px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); }
+.place select.cobras { background: var(--cobras); border-color: var(--cobras); color: #fff; }
+.place select.hawks { background: var(--hawks); border-color: var(--hawks); color: #fff; }
+.place select.sharks { background: var(--sharks); border-color: var(--sharks); color: #fff; }
+.place select.bears { background: var(--bears); border-color: var(--bears); color: #2b2300; }
+.place select option { background: #fff; color: var(--ink); }
+.place select:disabled { opacity: .6; }
+
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; color: var(--muted); font-size: 12px; }
+.danger { font: 700 12px var(--font); color: var(--cobras); background: #fff; border: 1px solid var(--line); padding: 6px 11px; border-radius: 8px; cursor: pointer; }
+.danger.armed { background: var(--cobras); border-color: var(--cobras); color: #fff; }
+.msg { padding: 10px 12px; border-radius: 10px; background: var(--soft); color: var(--muted); font-weight: 600; font-size: 12.5px; margin-bottom: 14px; }
+.msg.err { background: #fdecec; color: #a11a20; }
+.gate { max-width: 320px; margin: 24px auto; }
+.gate label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.gaterow { display: flex; gap: 6px; }
+.gaterow input { flex: 1; min-width: 0; font: 600 15px var(--font); padding: 9px 11px; border: 1.5px solid var(--line); border-radius: 10px; color: var(--ink); background: #fff; }
+.gaterow button { font: 700 13px var(--font); background: var(--blue); color: #fff; border: 0; border-radius: 10px; padding: 0 16px; cursor: pointer; }
+.gateerr { color: var(--cobras); font-weight: 600; font-size: 12.5px; margin: 8px 0 0; }
+input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+@media (max-width: 440px) {
+  .race { grid-template-columns: 1fr; gap: 6px; padding: 10px 0; }
+  .gsplit { grid-template-columns: 1fr; }
+  .chip { font-size: 12px; padding: 6px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="brand">Sports Day Leaderboard<small>Roman Ridge School, Ghana</small></div>
+    <div class="tabs" id="tabs" role="tablist" hidden>
+      <button role="tab" id="tabScores" aria-selected="true" type="button">Scores</button>
+      <button role="tab" id="tabAdmin" aria-selected="false" type="button">Admin</button>
+    </div>
+  </div>
+
+  <div class="msg" id="notice" hidden></div>
+
+  <section id="scoresView">
+    <div class="standings" id="standings" aria-label="House standings"></div>
+    <div class="head">
+      <h2>Results</h2>
+      <div class="filters" id="filtersScores"></div>
+    </div>
+    <div class="list" id="listScores"></div>
+    <div class="gsplit" id="gsplit" aria-label="Best house by division"></div>
+  </section>
+
+  <section id="adminView" hidden>
+    <form class="gate" id="gate" autocomplete="off">
+      <label for="pw">Admin password</label>
+      <div class="gaterow">
+        <input id="pw" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter password">
+        <button type="submit">Unlock</button>
+      </div>
+      <p class="gateerr" id="gateErr" hidden>Wrong password. Try again.</p>
+    </form>
+    <div id="adminBody" hidden>
+    <div class="head">
+      <h2>Update scores</h2>
+      <div class="filters" id="filtersAdmin"></div>
+    </div>
+    <div class="list" id="listAdmin"></div>
+    <div class="foot">
+      <span id="saveState">1st 15 · 2nd 10 · 3rd 5 points</span>
+      <button class="danger" id="resetBtn" type="button">Clear all scores</button>
+    </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var HOUSES = [
+    { id: "cobras", name: "Cobras", color: "var(--cobras)" },
+    { id: "hawks",  name: "Hawks",  color: "var(--hawks)" },
+    { id: "sharks", name: "Sharks", color: "var(--sharks)" },
+    { id: "bears",  name: "Bears",  color: "var(--bears)" }
+  ];
+  var POINTS = [15, 10, 5];
+  var PLACES = ["1st", "2nd", "3rd"];
+  var AGES = ["Senior", "Middle", "Junior"];
+  var GENDERS = ["Male", "Female"];
+  var RACES = ["r100", "r200", "r400", "r800", "relay"];
+
+  function raceLabel(r, age) {
+    if (r === "relay") return age === "Senior" ? "4x100m relay" : "Shuttle relay";
+    return r.slice(1) + "m";
+  }
+  function docId(age, gender, race) { return (age + "_" + gender + "_" + race).toLowerCase(); }
+
+  var ADMIN_PASSWORD = "1234";
+  var state = { age: "Senior", gender: "Male", view: "scores", results: {}, ready: false, unlocked: false };
+  try { state.unlocked = sessionStorage.getItem("sd-admin") === "1"; } catch (e) {}
+  var db = null;
+  var queues = {};
+
+  function $(id) { return document.getElementById(id); }
+  function byId(id) { for (var i = 0; i < HOUSES.length; i++) if (HOUSES[i].id === id) return HOUSES[i]; return null; }
+
+  function notice(text, isErr) {
+    var n = $("notice");
+    if (!text) { n.hidden = true; return; }
+    n.textContent = text; n.hidden = false;
+    n.className = "msg" + (isErr ? " err" : "");
+  }
+
+  function totals() {
+    var t = {}, recorded = 0;
+    HOUSES.forEach(function (h) { t[h.id] = 0; });
+    Object.keys(state.results).forEach(function (k) {
+      var pl = state.results[k] || [];
+      if (pl.some(Boolean)) recorded++;
+      for (var p = 0; p < 3; p++) if (pl[p] && t[pl[p]] !== undefined) t[pl[p]] += POINTS[p];
+    });
+    return { t: t, recorded: recorded };
+  }
+
+  function renderStandings() {
+    var box = $("standings");
+    var tt = totals();
+    var order = HOUSES.slice().sort(function (a, b) { return tt.t[b.id] - tt.t[a.id]; });
+    var max = Math.max(1, tt.t[order[0].id]);
+    var any = tt.recorded > 0;
+    var rank = 0, prev = null;
+    box.innerHTML = "";
+    order.forEach(function (h, i) {
+      if (tt.t[h.id] !== prev) { rank = i + 1; prev = tt.t[h.id]; }
+      var row = document.createElement("div");
+      row.className = "house";
+      row.innerHTML =
+        '<div class="rk">' + (any ? rank : "") + '</div>' +
+        '<div><div class="top"><span class="nm">' + h.name + '</span><span class="pts">' + tt.t[h.id] + '</span></div>' +
+        '<div class="track"><i style="width:' + (tt.t[h.id] / max * 100) + '%;background:' + h.color + '"></i></div></div>';
+      box.appendChild(row);
+    });
+  }
+
+  var open = { male: false, female: false };
+  function renderGenderBest() {
+    var box = $("gsplit");
+    var by = { male: {}, female: {} };
+    HOUSES.forEach(function (h) { by.male[h.id] = 0; by.female[h.id] = 0; });
+    Object.keys(state.results).forEach(function (k) {
+      var g = k.split("_")[1];
+      if (!by[g]) return;
+      var pl = state.results[k] || [];
+      for (var p = 0; p < 3; p++) if (pl[p] && by[g][pl[p]] !== undefined) by[g][pl[p]] += POINTS[p];
+    });
+    box.innerHTML = "";
+    [["male", "Best boys\u2019 house"], ["female", "Best girls\u2019 house"]].forEach(function (c) {
+      var t = by[c[0]];
+      var order = HOUSES.slice().sort(function (a, b) { return t[b.id] - t[a.id]; });
+      var top = t[order[0].id];
+      var leaders = top > 0 ? order.filter(function (h) { return t[h.id] === top; }) : [];
+      var card = document.createElement("details");
+      card.className = "gcard";
+      if (open[c[0]]) card.open = true;
+      card.addEventListener("toggle", function () { open[c[0]] = card.open; });
+      var win = leaders.length
+        ? '<div class="gw">' + leaders.map(function (h) { return '<i style="background:' + h.color + '"></i>'; }).join("") +
+          '<span>' + leaders.map(function (h) { return h.name; }).join(" & ") + '</span></div>'
+        : '<div class="gw none">No results yet</div>';
+      var rows = order.map(function (h) {
+        return '<li class="' + (top > 0 && t[h.id] === top ? "lead" : "") + '"><i style="background:' + h.color + '"></i><span>' + h.name + '</span><b>' + t[h.id] + ' pts</b></li>';
+      }).join("");
+      card.innerHTML = '<summary><div class="gl">' + c[1] + '</div>' + win + '</summary><ul>' + rows + '</ul><div class="pad"></div>';
+      box.appendChild(card);
+    });
+  }
+
+  function pill(el, items, current, pick) {
+    el.innerHTML = "";
+    [items].forEach(function (list) {
+      var wrap = document.createElement("div");
+      wrap.className = "pills";
+      list.forEach(function (it) {
+        var b = document.createElement("button");
+        b.type = "button"; b.textContent = it;
+        b.setAttribute("aria-pressed", it === current ? "true" : "false");
+        b.addEventListener("click", function () { pick(it); });
+        wrap.appendChild(b);
+      });
+      el.appendChild(wrap);
+    });
+  }
+
+  function renderFilters(el) {
+    el.innerHTML = "";
+    var a = document.createElement("div"), g = document.createElement("div");
+    el.appendChild(a); el.appendChild(g);
+    pill(a, AGES, state.age, function (v) { state.age = v; render(); });
+    pill(g, GENDERS, state.gender, function (v) { state.gender = v; render(); });
+    a.className = g.className = "";
+  }
+
+  function renderScoresList() {
+    var list = $("listScores");
+    list.innerHTML = "";
+    RACES.forEach(function (r) {
+      var pl = state.results[docId(state.age, state.gender, r)] || [];
+      var row = document.createElement("div");
+      row.className = "race";
+      var inner = '<div class="rn">' + raceLabel(r, state.age) + '</div><div class="three">';
+      for (var p = 0; p < 3; p++) {
+        var h = pl[p] ? byId(pl[p]) : null;
+        inner += '<div class="chip ' + (h ? h.id : "") + '"><b>' + PLACES[p] + '</b>' + (h ? h.name : "–") + '</div>';
+      }
+      row.innerHTML = inner + "</div>";
+      list.appendChild(row);
+    });
+  }
+
+  function save(age, gender, race, places) {
+    var id = docId(age, gender, race);
+    var ref = db.doc("results/" + id);
+    var op = function () {
+      if (!places.some(Boolean)) return ref.delete();
+      return ref.set({ age: age, gender: gender, race: race, places: places });
+    };
+    var prev = queues[id] || Promise.resolve();
+    var next = prev.then(op, op);
+    queues[id] = next.catch(function () {});
+    return next;
+  }
+
+  function setSaveState(text, isErr) {
+    var s = $("saveState");
+    s.textContent = text;
+    s.style.color = isErr ? "var(--cobras)" : "";
+  }
+
+  function renderAdminList() {
+    var list = $("listAdmin");
+    list.innerHTML = "";
+    RACES.forEach(function (r) {
+      var id = docId(state.age, state.gender, r);
+      var pl = (state.results[id] || [null, null, null]).slice();
+      var row = document.createElement("div");
+      row.className = "race";
+      var rn = document.createElement("div");
+      rn.className = "rn"; rn.textContent = raceLabel(r, state.age);
+      var three = document.createElement("div");
+      three.className = "three";
+      for (var p = 0; p < 3; p++) {
+        (function (p) {
+          var box = document.createElement("div"); box.className = "place";
+          var sid = "s_" + id + p;
+          var lab = document.createElement("label");
+          lab.setAttribute("for", sid);
+          lab.textContent = PLACES[p] + " · " + POINTS[p];
+          var sel = document.createElement("select");
+          sel.id = sid; sel.className = pl[p] || "";
+          var o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Select";
+          sel.appendChild(o0);
+          HOUSES.forEach(function (h) {
+            var o = document.createElement("option"); o.value = h.id; o.textContent = h.name;
+            if (pl[p] === h.id) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener("change", function () {
+            var cur = (state.results[id] || [null, null, null]).slice();
+            cur[p] = sel.value || null;
+            sel.className = sel.value;
+            setSaveState("Saving…");
+            save(state.age, state.gender, r, cur).then(function () {
+              setSaveState("Saved");
+            }, function () {
+              setSaveState("Could not save. Your access is view-only.", true);
+              renderAdminList();
+            });
+          });
+          box.appendChild(lab); box.appendChild(sel); three.appendChild(box);
+        })(p);
+      }
+      row.appendChild(rn); row.appendChild(three);
+      list.appendChild(row);
+    });
+  }
+
+  function render() {
+    $("scoresView").hidden = state.view !== "scores";
+    $("adminView").hidden = state.view !== "admin";
+    $("tabScores").setAttribute("aria-selected", state.view === "scores");
+    $("tabAdmin").setAttribute("aria-selected", state.view === "admin");
+    renderStandings();
+    renderGenderBest();
+    var admin = state.view === "admin";
+    $("gate").hidden = !(admin && !state.unlocked);
+    $("adminBody").hidden = !(admin && state.unlocked);
+    if (!admin) { renderFilters($("filtersScores")); renderScoresList(); }
+    else if (state.unlocked) { renderFilters($("filtersAdmin")); renderAdminList(); }
+  }
+
+  $("tabScores").addEventListener("click", function () { state.view = "scores"; render(); });
+  $("tabAdmin").addEventListener("click", function () { state.view = "admin"; render(); });
+
+  $("gate").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var input = $("pw");
+    if (input.value === ADMIN_PASSWORD) {
+      state.unlocked = true;
+      try { sessionStorage.setItem("sd-admin", "1"); } catch (err) {}
+      $("gateErr").hidden = true;
+      input.value = "";
+      render();
+    } else {
+      $("gateErr").hidden = false;
+      input.select();
+    }
+  });
+
+  var resetBtn = $("resetBtn"), armTimer = null;
+  resetBtn.addEventListener("click", function () {
+    if (!resetBtn.classList.contains("armed")) {
+      resetBtn.classList.add("armed"); resetBtn.textContent = "Tap again to confirm";
+      armTimer = setTimeout(disarm, 3500); return;
+    }
+    clearTimeout(armTimer); disarm();
+    if (!db) return;
+    setSaveState("Clearing…");
+    var keys = Object.keys(state.results);
+    keys.reduce(function (p, k) { return p.then(function () { return db.doc("results/" + k).delete(); }); }, Promise.resolve())
+      .then(function () { setSaveState("All scores cleared"); },
+            function () { setSaveState("Could not clear scores.", true); });
+  });
+  function disarm() { resetBtn.classList.remove("armed"); resetBtn.textContent = "Clear all scores"; }
+
+  render();
+
+  /* stores scores in this browser (used when the page runs outside claude.ai, e.g. GitHub Pages) */
+  function localDb() {
+    var KEY = "sd-leaderboard-results";
+    var listeners = [];
+    function read() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+    function write(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+    function emit() { var o = read(); listeners.forEach(function (f) { f(o); }); }
+    window.addEventListener("storage", emit);
+    return {
+      doc: function (path) {
+        var id = path.split("/")[1];
+        return {
+          set: function (d) { var o = read(); o[id] = d; write(o); emit(); return Promise.resolve(); },
+          delete: function () { var o = read(); delete o[id]; write(o); emit(); return Promise.resolve(); }
+        };
+      },
+      collection: function () {
+        return {
+          onSnapshot: function (next) {
+            listeners.push(function (o) {
+              next({ docs: Object.keys(o).map(function (k) { return { id: k, data: function () { return o[k]; } }; }) });
+            });
+            emit();
+          }
+        };
+      }
+    };
+  }
+
+  /* shared scores + admin access: lights up when the runtime answers */
+  (async function () {
+    try {
+      if (window.claude && window.claude.use) db = await window.claude.use("db");
+    } catch (e) { db = null; }
+
+    if (!db) {
+      db = localDb();
+      notice("Scores are saved in this browser only.", false);
+    }
+    $("tabs").hidden = false;
+    db.collection("results").onSnapshot(function (snap) {
+      var r = {};
+      snap.docs.forEach(function (d) {
+        var data = d.data();
+        if (data && data.places) r[d.id] = data.places;
+      });
+      state.results = r;
+      state.ready = true;
+      render();
+    }, function () {
+      notice("Lost connection to live scores. Reload the page to reconnect.", true);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
