@@ -43,6 +43,5 @@ HTML5, CSS3, JavaScript (ES6), Supabase (PostgreSQL, REST API, Row Level Securit
 
 ## About
 
-Built by [your name], [your year/grade], Roman Ridge School, Accra, Ghana.
-[One sentence on how it was used, for example: "Used at the [year] sports day by [number] students across four houses."]
-[If an AI tool helped: "Built with help from Claude (Anthropic) for code generation; I designed the requirements, tested the app and deployed it."]
+"Used at the [year] sports day by [number] students across four houses.
+Built with help from Claude (Anthropic) for code generation; I designed the requirements, tested the app and deployed it.
