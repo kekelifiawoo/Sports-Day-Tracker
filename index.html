@@ -185,6 +185,11 @@ input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
   function docId(age, gender, race) { return (age + "_" + gender + "_" + race).toLowerCase(); }
 
   var ADMIN_PASSWORD = "1234";
+
+  /* Shared scores (visible to everyone): paste your Supabase details here. See README.md.
+     Leave both empty to keep scores on this device only. */
+  var SUPABASE_URL = "";   // e.g. https://abcdxyz.supabase.co
+  var SUPABASE_KEY = "";   // the public "anon" / "publishable" key
   var state = { age: "Senior", gender: "Male", view: "scores", results: {}, ready: false, unlocked: false };
   try { state.unlocked = sessionStorage.getItem("sd-admin") === "1"; } catch (e) {}
   var db = null;
@@ -452,6 +457,49 @@ input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
     };
   }
 
+  /* shared scores stored in a free Supabase table, refreshed every few seconds */
+  function remoteDb() {
+    var base = SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/results";
+    var hdr = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
+    if (SUPABASE_KEY.indexOf("eyJ") === 0) hdr.Authorization = "Bearer " + SUPABASE_KEY;
+    var subs = [], last = null, timer = null;
+    function check(res) { if (!res.ok) throw new Error("http " + res.status); return res; }
+    function pull() {
+      return fetch(base + "?select=id,places", { headers: hdr }).then(check).then(function (r) { return r.json(); }).then(function (rows) {
+        rows.sort(function (a, b) { return a.id < b.id ? -1 : 1; });
+        var str = JSON.stringify(rows);
+        if (str === last) return;
+        last = str;
+        var snap = { docs: rows.map(function (row) { return { id: row.id, data: function () { return { places: row.places }; } }; }) };
+        subs.forEach(function (next) { next(snap); });
+      });
+    }
+    function after() { return pull().catch(function () {}); }
+    return {
+      doc: function (path) {
+        var id = path.split("/")[1];
+        return {
+          set: function (d) {
+            var h = Object.assign({}, hdr, { Prefer: "resolution=merge-duplicates,return=minimal" });
+            return fetch(base, { method: "POST", headers: h, body: JSON.stringify({ id: id, age: d.age, gender: d.gender, race: d.race, places: d.places }) }).then(check).then(after);
+          },
+          delete: function () {
+            return fetch(base + "?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: hdr }).then(check).then(after);
+          }
+        };
+      },
+      collection: function () {
+        return {
+          onSnapshot: function (next, error) {
+            subs.push(next); last = null;
+            pull().catch(function () { if (error) error(); });
+            if (!timer) timer = setInterval(function () { pull().catch(function () {}); }, 4000);
+          }
+        };
+      }
+    };
+  }
+
   /* shared scores + admin access: lights up when the runtime answers */
   (async function () {
     try {
@@ -459,8 +507,7 @@ input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
     } catch (e) { db = null; }
 
     if (!db) {
-      db = localDb();
-      notice("Scores are saved in this browser only.", false);
+      db = (SUPABASE_URL && SUPABASE_KEY) ? remoteDb() : localDb();
     }
     $("tabs").hidden = false;
     db.collection("results").onSnapshot(function (snap) {
